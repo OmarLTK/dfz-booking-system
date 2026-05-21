@@ -20,9 +20,7 @@ Anyone — internal staff or external requestor — can submit a booking request
 
 ---
 
-## Why this is more interesting than it looks
-
-A booking system sounds boring. This one isn't, because the constraints forced some non-obvious design decisions.
+## Detailed Reconstruction
 
 ### 1. Sync inversion
 
