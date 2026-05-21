@@ -186,5 +186,5 @@ This is a single-author project. All scripts, formulas, schema design, and autom
 
 ## Contact
 
-📫 [your-email]
-🔗 [LinkedIn](https://linkedin.com/in/<your-slug>)
+📫 [your-email](Omarltk03@gmail.com)
+🔗 [LinkedIn](https://www.linkedin.com/in/omar-ali-yare/)
