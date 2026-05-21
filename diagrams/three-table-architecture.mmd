@@ -1,0 +1,33 @@
+%% Three-table architecture for the DFZ booking system.
+%% Renders on GitHub natively when this file is referenced from a markdown file
+%% (use ```mermaid fences) or in any Mermaid-aware viewer.
+
+flowchart TB
+    form["📝 Public Booking Form<br/>(Airtable-hosted)"]
+    gcal["📅 Google Calendar<br/>(external)"]
+
+    subgraph airtable["Airtable base"]
+        sc["📋 Sandbox Calendar<br/><i>(read-only sync target)</i>"]
+        br["📋 SandBox Booking Request<br/><i>(writable proxy table;<br/>4-state machine)</i>"]
+        ab["📋 Available Bookings<br/><i>(per-slot ledger;<br/>6+ state machine per slot)</i>"]
+    end
+
+    slack["💬 Slack"]
+    gmail["✉️ Gmail"]
+
+    form -- "submit (External=1)" --> br
+    gcal -- "one-way sync" --> sc
+    sc -- "trigger: mirror manual events<br/>(if External lookup length ≠ 1)" --> br
+    br -- "on 'confirmed':<br/>create event" --> gcal
+    br -- "Booked Slots linked field" --> ab
+    br -- "on 'new request':<br/>notify" --> slack
+    br -- "on status change:<br/>email" --> gmail
+    ab -. "form queries this table<br/>for available slots" .-> form
+
+    classDef tableNode fill:#fef3c7,stroke:#92400e,stroke-width:2px
+    classDef externalNode fill:#dbeafe,stroke:#1e40af,stroke-width:2px
+    classDef integrationNode fill:#d1fae5,stroke:#065f46,stroke-width:2px
+
+    class sc,br,ab tableNode
+    class form,gcal externalNode
+    class slack,gmail integrationNode

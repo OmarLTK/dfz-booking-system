@@ -1,0 +1,40 @@
+%% Slot-level state machine for individual 30-minute slots in Available Bookings.
+%% Shows the 6+ states a slot can be in (5 Type-field states + (empty) + Blocked
+%% as an orthogonal flag), and the overwrite priority rules between them.
+
+stateDiagram-v2
+    direction LR
+
+    [*] --> available: Slot generated<br/>by script 01
+
+    available --> pending: Reserved as buffer<br/>(script 03)
+    available --> setup: Booking with setup<br/>checkbox checked
+    available --> teardown: Booking confirmed<br/>(always applied after)
+    available --> booking: Within [Start, End)<br/>of confirmed booking
+
+    pending --> setup: Next booking claims<br/>the buffer
+    pending --> available: Rejection cleanup<br/>(script 05)
+
+    setup --> available: Rejection cleanup<br/>(only if booking above<br/>was rejected)
+
+    teardown --> available: Rejection cleanup<br/>(only if booking below<br/>was rejected)
+
+    booking --> available: Rejection cleanup<br/>(via clearing Booked Slots)
+
+    note left of pending
+        Invisible to requestors.
+        Convertible: only state that
+        a future Setup can overwrite.
+    end note
+
+    note right of setup
+        Setup can overwrite Pending,
+        but NOT Setup/Teardown/Booking
+        from another booking.
+    end note
+
+    note right of booking
+        Highest priority.
+        Nothing overwrites a slot
+        that has Booked Slots populated.
+    end note

@@ -1,0 +1,42 @@
+%% End-to-end sequence: form submission → confirmed event.
+%% Shows the actors, automations, and scripts involved in a happy-path booking.
+
+sequenceDiagram
+    actor User
+    participant Form as 📝 Booking Form
+    participant BR as 📋 Booking Request
+    participant AB as 📋 Available Bookings
+    actor Staff
+    participant Slack as 💬 Slack
+    participant Gmail as ✉️ Gmail
+    participant GCal as 📅 Google Calendar
+    participant SC as 📋 Sandbox Calendar
+
+    User->>Form: Fill out form,<br/>select slots
+    Form->>BR: Create record<br/>(External=1, status='new request')
+
+    par form-submit automations
+        BR->>Slack: Notification to DFZ channel
+        BR->>Gmail: Notification to staff
+        BR->>BR: script 04: Flag Clear Out / All Day
+    end
+
+    Staff->>BR: Set Booking Status = 'confirmed'
+
+    par confirmation automations
+        BR->>AB: script 02 (booking range fill)<br/>Mark each slot in [Start,End)<br/>as Type='Booking'
+        BR->>AB: script 03 (setup/teardown/pending)<br/>Apply Setup/Teardown/Pending<br/>to neighboring slots
+        BR->>GCal: Create calendar event
+        BR->>Gmail: Confirmation email to user
+    end
+
+    GCal->>SC: One-way sync<br/>brings event into Airtable
+    SC->>BR: Check External lookup length<br/>length = 1 → skip mirror creation
+
+    Note over BR,SC: System remains in steady state<br/>until rejection or event deletion.
+
+    opt If event later deleted in Google Calendar
+        GCal--xSC: Event removed via sync
+        SC->>BR: Event ID lookup goes empty
+        BR->>BR: script 06: orphan-record-cleanup<br/>deletes the Booking Request
+    end

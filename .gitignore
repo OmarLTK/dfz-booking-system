@@ -1,0 +1,14 @@
+# OS clutter
+.DS_Store
+Thumbs.db
+
+# Editor clutter
+.vscode/
+.idea/
+*.swp
+*~
+
+# If you ever add a node-based linter / tooling later
+node_modules/
+package-lock.json
+yarn.lock

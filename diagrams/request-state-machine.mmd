@@ -1,0 +1,39 @@
+%% Request-level state machine (4 states) for SandBox Booking Request records.
+
+stateDiagram-v2
+    direction LR
+
+    [*] --> new_request: Form submission<br/>(External = 1)
+    [*] --> new_request: Manual calendar event<br/>mirrored from Sandbox Calendar
+
+    new_request --> confirmed: Staff approves<br/>→ Slack notify<br/>→ Gmail notify
+    new_request --> hold: Staff needs more info
+    new_request --> rejected: Staff rejects<br/>(reason optional)
+
+    hold --> confirmed: Info received,<br/>staff approves
+    hold --> rejected: Info received,<br/>staff rejects
+
+    confirmed --> rejected: Cancellation<br/>(rare; runs cleanup)
+
+    confirmed --> [*]: Google Calendar event<br/>created; slots marked;<br/>confirmation email sent
+    rejected --> [*]: Rejection email sent;<br/>slots released
+
+    note right of new_request
+        Triggers on entry:
+        - Slack message to DFZ channel
+        - Gmail to staff list
+    end note
+
+    note right of confirmed
+        Triggers on entry:
+        - script 02 (booking range fill)
+        - script 03 (setup/teardown/pending)
+        - Google Calendar event creation
+        - confirmation email
+    end note
+
+    note right of rejected
+        Triggers on entry:
+        - script 05 (rejection cleanup)
+        - rejection email (with optional reason)
+    end note
